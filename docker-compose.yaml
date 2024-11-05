@@ -1,0 +1,8 @@
+services:
+  python:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - .build:/build
+    command: python test.py
