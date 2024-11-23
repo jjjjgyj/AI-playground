@@ -1,25 +1,48 @@
-import requests 
+import requests
 from bs4 import BeautifulSoup
+from typing import List, Optional
 
-# Define the URL of the web page you want to crawl
-url = "https://pointstalent.com/"
+def get_webpage_content(url: str) -> Optional[BeautifulSoup]:
+    """
+    Fetch and parse webpage content from given URL.
+    
+    Args:
+        url: The webpage URL to crawl
+        
+    Returns:
+        BeautifulSoup object if successful, None otherwise
+    """
+    try:
+        response = requests.get(url)
+        response.raise_for_status()
+        return BeautifulSoup(response.content, "html.parser")
+    except requests.RequestException as e:
+        print(f"Failed to retrieve webpage: {e}")
+        return None
 
-# Send a GET request to the URL and retrieve the HTML content
-response = requests.get(url)
+def extract_filtered_text(soup: BeautifulSoup, tag: str, keyword: str) -> List[str]:
+    """
+    Extract text from elements containing specified keyword.
+    
+    Args:
+        soup: BeautifulSoup object of parsed HTML
+        tag: HTML tag to search for
+        keyword: Text to filter elements by
+        
+    Returns:
+        List of text from matching elements
+    """
+    elements = soup.find_all(tag)
+    return [element.text for element in elements if keyword in element.text]
 
-# Check if the request was successful (status code 200)
-if response.status_code == 200:
-    # Parse the HTML content using BeautifulSoup
-    soup = BeautifulSoup(response.content, "html.parser")
+def main():
+    url = "https://pointstalent.com/"
+    soup = get_webpage_content(url)
     
-    # Find all title elements in the HTML
-    elements = soup.find_all("div")
-    
-    # Extract the text of the title elements containing "points"
-    filtered_elements = [element.text for element in elements if "达美" in element.text]  
-    
-    # Print the titles
-    for filtered_element in filtered_elements:
-        print(filtered_element)
-else:
-    print("Failed to retrieve the web page")
+    if soup:
+        filtered_elements = extract_filtered_text(soup, "p", "达美")
+        for element in filtered_elements:
+            print(element)
+
+if __name__ == "__main__":
+    main()
